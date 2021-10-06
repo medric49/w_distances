@@ -1,5 +1,6 @@
 import argparse
 import sys
+from math import *
 from sys import stdin
 
 import numpy as np
@@ -19,6 +20,7 @@ def read_eval_file(eval_file):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('eval_file', type=str, help='Evaluation file.')
+    parser.add_argument('-p', '--power', default=2, type=int, help='Minkowski power.')
     args, _ = parser.parse_known_args(sys.argv[1:])
 
     eval_data = read_eval_file(args.eval_file)
@@ -39,7 +41,8 @@ if __name__ == '__main__':
             i_prop = props.index(p0)
         except ValueError:
             i_prop = nb_props
-        score = 1 - i_prop/nb_props
+
+        score = sqrt(1 - (i_prop/nb_props)**args.power)
         scores.append(score)
     print(np.mean(scores))
 
