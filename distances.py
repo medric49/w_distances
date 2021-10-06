@@ -3,24 +3,27 @@ from collections import deque
 
 
 class Distance:
-    def __init__(self, glossary: dict, max_proposition):
+    def __init__(self, glossary: dict, max_proposition, selection_method_id):
+        self.methods = [self._select_0, self._select_1, self._select_2]
+
         self.glossary = glossary
         self.max_proposition = max_proposition
-        pass
+        self.selection_method = self.methods[selection_method_id]
 
     def distance(self, w1, w2):
         raise NotImplementedError()
 
-    def _select_1(self, w):
+    def _select_0(self, w):
         props = deque([], maxlen=self.max_proposition)
         min_dist = np.inf
         for word in self.glossary.keys():
             dist = self.distance(w, word)
             if dist <= min_dist:
                 props.appendleft(word)
+                min_dist = dist
         return list(props)
 
-    def _select_2(self, w):
+    def _select_1(self, w):
         props = deque([], maxlen=self.max_proposition)
         dists = deque([], maxlen=self.max_proposition)
 
@@ -31,11 +34,14 @@ class Distance:
                 props.appendleft(word)
                 dists.appendleft(dist)
             elif dist <= np.mean(dists):
+                if len(props) == props.maxlen:
+                    props.pop()
+                    dists.pop()
                 props.insert(1, word)
                 dists.insert(1, dist)
         return list(props)
 
-    def _select_3(self, w):
+    def _select_2(self, w):
         props = {}
         chosen_props = []
         for word in self.glossary.keys():
@@ -43,7 +49,7 @@ class Distance:
             props[word] = dist
 
         for i in range(self.max_proposition):
-            word = list(props.keys())[np.argmax(props.values())]
+            word = list(props.keys())[np.argmin(list(props.values()))]
             chosen_props.append(word)
             props.pop(word)
         return chosen_props
@@ -53,21 +59,49 @@ class Distance:
             if w in self.glossary:
                 return [w]
             else:
-                return self._select_3(w)
+                return self.selection_method(w)
         elif isinstance(w, list):
             return {w0: self.propositions(w0) for w0 in w}
 
 
 class NullDistance(Distance):
-    def __init__(self, glossary, max_proposition=10):
-        super(NullDistance, self).__init__(glossary, max_proposition)
-
     def distance(self, w1, w2):
         return 0
 
 
 class HammingDistance(Distance):
-    def __init__(self, glossary, max_proposition=10):
-        super(HammingDistance, self).__init__(glossary, max_proposition)
+    def distance(self, w1, w2):
+        min_length = min(len(w1), len(w2))
+        diff = 0
+        for i in range(min_length):
+            if w1[i] != w2[i]:
+                diff += 1
+        diff += abs(len(w1) - len(w2))
+        return diff
+
+
+class JaccardDistance(Distance):
+    def __init__(self, glossary: dict, max_proposition, nb_char, selection_method_id):
+        super().__init__(glossary, max_proposition, selection_method_id)
+        self.nb_char = nb_char
+        self.glossary = glossary
+        self.max_proposition = max_proposition
+
+    def _separate(self, word) -> set:
+        w = set()
+        for i in range(len(word)-self.nb_char+1):
+            w.add(word[i:i+self.nb_char])
+        return w
+
+    def distance(self, w1, w2):
+        w1 = self._separate(w1)
+        w2 = self._separate(w2)
+
+        union = w1.union(w2)
+        intersection = w1.intersection(w2)
+        jaccard_index = len(intersection)/len(union)
+
+        return 1 - jaccard_index
+
 
 
