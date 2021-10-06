@@ -104,4 +104,49 @@ class JaccardDistance(Distance):
         return 1 - jaccard_index
 
 
+class LevenshteinDistance(Distance):
 
+    def _sub(self, w1: str, w2: str):
+        if w1[-1] == w2[-1]:
+            return w1, w2, 0
+        w2 = w2[:-1] + w1[-1:]
+        return w1, w2, 1
+
+    def _ins(self, w1: str, w2: str):
+        w2 = w2 + w1[-1:]
+        return w1, w2, 1
+
+    def _del(self, w1: str, w2: str):
+        w2 = w2[:-1]
+        return w1, w2, 1
+
+    def distance(self, w1, w2, i=None, j=None):
+        if i is None:
+            i = len(w1) - 1
+        if j is None:
+            j = len(w2) - 1
+
+        if w1 == w2:
+            return 0
+
+        if i == 0:
+            if j == 0:
+                return 0
+            else:
+                t1, t2, c = self._del(w1, w2)
+                return self.distance(t1, t2, i, j-1) + c
+        else:
+            if j == 0:
+                t1, t2, c = self._ins(w1, w2)
+
+                return self.distance(t1, t2, i-1, j) + c
+            else:
+                t1, t2, c = self._sub(w1, w2)
+                i1 = self.distance(t1, t2, i-1, j-1) + c
+
+                t1, t2, c = self._ins(w1, w2)
+                i2 = self.distance(t1, t2, i-1, j) + c
+
+                t1, t2, c = self._del(w1, w2)
+                i3 = self.distance(t1, t2, i, j-1) + c
+                return min(i1, i2, i3)
