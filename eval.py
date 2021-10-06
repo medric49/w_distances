@@ -5,17 +5,7 @@ from sys import stdin
 
 import numpy as np
 
-
-def read_eval_file(eval_file):
-    eval_data = {}
-    with open(eval_file, 'r') as eval_file:
-        lines = eval_file.read().split('\n')
-        lines.remove('')
-        for line in lines:
-            w, p = line.split('\t')
-            eval_data[w] = p
-    return eval_data
-
+from utils import read_eval_file
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

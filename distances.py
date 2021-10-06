@@ -3,12 +3,13 @@ from collections import deque
 
 
 class Distance:
-    def __init__(self, glossary: dict, max_proposition, selection_method_id):
-        self.methods = [self._select_0, self._select_1, self._select_2]
-
+    def __init__(self, glossary: dict = None, max_proposition=5, select_fn=1):
         self.glossary = glossary
         self.max_proposition = max_proposition
-        self.selection_method = self.methods[selection_method_id]
+        self.select_fn = select_fn
+
+    def __call__(self, w1, w2):
+        return self.distance(w1, w2)
 
     def distance(self, w1, w2):
         raise NotImplementedError()
@@ -54,12 +55,20 @@ class Distance:
             props.pop(word)
         return chosen_props
 
+    def select(self, w):
+        if self.select_fn == 0:
+            return self._select_0(w)
+        elif self.select_fn == 1:
+            return self._select_1(w)
+        elif self.select_fn == 2:
+            return self._select_2(w)
+
     def propositions(self, w: str or list):
         if isinstance(w, str):
             if w in self.glossary:
                 return [w]
             else:
-                return self.selection_method(w)
+                return self.select(w)
         elif isinstance(w, list):
             return {w0: self.propositions(w0) for w0 in w}
 
@@ -81,11 +90,9 @@ class HammingDistance(Distance):
 
 
 class JaccardDistance(Distance):
-    def __init__(self, glossary: dict, max_proposition, nb_char, selection_method_id):
-        super().__init__(glossary, max_proposition, selection_method_id)
+    def __init__(self, nb_char=2, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.nb_char = nb_char
-        self.glossary = glossary
-        self.max_proposition = max_proposition
 
     def _separate(self, word) -> set:
         w = set()
@@ -105,7 +112,6 @@ class JaccardDistance(Distance):
 
 
 class LevenshteinDistance(Distance):
-
     def _sub(self, w1: str, w2: str):
         if w1[-1] == w2[-1]:
             return w1, w2, 0
