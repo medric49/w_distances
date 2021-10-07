@@ -15,7 +15,7 @@ if __name__ == '__main__':
     words = stdin.read().split('\n')
     words.remove('')
 
-    distance = distances.JaccardDistance(nb_char=2, glossary=glossary, max_proposition=5, select_fn=2)
+    distance = distances.LevenshteinDistance(glossary=glossary, max_proposition=5, select_fn=1)
     all_props = distance.propositions(words)
 
     for word, props in all_props.items():

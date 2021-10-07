@@ -1,5 +1,5 @@
 from distances import *
 if __name__ == '__main__':
-    distance = JaccardDistance(nb_char=2)
+    distance = LevenshteinDistance()
 
-    print(distance('wave', 'issu'))
+    print(distance('waveyyy', 'issu'))
