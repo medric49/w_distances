@@ -1,5 +1,9 @@
-import numpy as np
+import string
 from collections import deque
+
+import numpy as np
+
+import utils
 
 
 class Distance:
@@ -156,4 +160,95 @@ class LevenshteinDistance(Distance):
         w1 = list(w1)
         w2 = list(w2)
         return self.solve(w1, w2, len(w1) - 1, len(w2) - 1)
+
+
+class SoundexDistance(Distance):
+    def __init__(self, soundex_file=None, distance_fn=None, *args, **kwargs):
+        super(SoundexDistance, self).__init__(*args, **kwargs)
+
+        self.distance_fn = distance_fn
+        self.soundex_dict = {}
+
+        if soundex_file is None:
+            self.char_to_int = {
+                'B': '1',
+                'F': '1',
+                'P': '1',
+                'V': '1',
+
+                'C': '2',
+                'G': '2',
+                'J': '2',
+                'K': '2',
+                'Q': '2',
+                'S': '2',
+                'X': '2',
+                'Z': '2',
+
+                'D': '3',
+                'T': '3',
+
+                'L': '4',
+
+                'M': '5',
+                'N': '5',
+
+                'R': '6'
+            }
+            self.bad_letters = 'AEIOUHWY'
+            for word in self.glossary.keys():
+                soundex_code = self.soundex(word)
+                if soundex_code in self.soundex_dict:
+                    self.soundex_dict[soundex_code].append(word)
+                else:
+                    self.soundex_dict[soundex_code] = [word]
+            utils.save_obj('soundex.code', self.soundex_dict)
+        else:
+            self.soundex_dict = utils.load_obj(soundex_file)
+
+    def soundex(self, word: str):
+        w = word.upper()
+        w = [i for i in w if i in string.ascii_uppercase]
+
+        first_letter = w[:1]
+        w = w[1:]
+        w = [i for i in w if i not in self.bad_letters]
+
+        tmp = []
+        prev_i = -1
+        for c in w:
+            i = self.char_to_int[c]
+            if prev_i != i:
+                tmp.append(i)
+                prev_i = i
+
+        w = first_letter + tmp
+
+        w = w[:4]
+        w = ''.join(w)
+        w = w.ljust(4, '0')
+        return w
+
+    def distance(self, w1, w2):
+        code_1 = self.soundex(w1)
+        code_2 = self.soundex(w2)
+
+        if self.distance_fn is not None:
+            return self.distance_fn(code_1, code_2)
+        else:
+            if code_1 != code_2:
+                return 1
+            else:
+                return 0
+
+    # def propositions(self, w: str or list):
+    #     if self.distance_fn is None:
+    #         if isinstance(w, str):
+    #             code = self.soundex(w)
+    #             return self.soundex_dict[code]
+    #         else:
+    #             return {w0: self.soundex_dict[self.soundex(w0)][:self.max_proposition] for w0 in w}
+    #     else:
+    #         return super(SoundexDistance, self).propositions(w)
+
 
