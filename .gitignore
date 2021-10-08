@@ -1,7 +1,5 @@
 .idea
 .ipynb
-devoir3-train.txt
-voc-1bwc.txt
 __pycache__
-result.txt
+*.txt
 soundex.code

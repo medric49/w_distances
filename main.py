@@ -1,5 +1,5 @@
 from distances import *
 if __name__ == '__main__':
-    distance = LevenshteinDistance()
+    distance = JaroDistance(winkler=True)
 
-    print(distance('waveyyy', 'issu'))
+    print(distance('wave', 'wa'))

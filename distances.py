@@ -5,6 +5,7 @@ import numpy as np
 
 import utils
 
+import jaro
 
 class Distance:
     def __init__(self, glossary: dict = None, max_proposition=5, select_fn=1):
@@ -241,14 +242,21 @@ class SoundexDistance(Distance):
             else:
                 return 0
 
-    # def propositions(self, w: str or list):
-    #     if self.distance_fn is None:
-    #         if isinstance(w, str):
-    #             code = self.soundex(w)
-    #             return self.soundex_dict[code]
-    #         else:
-    #             return {w0: self.soundex_dict[self.soundex(w0)][:self.max_proposition] for w0 in w}
-    #     else:
-    #         return super(SoundexDistance, self).propositions(w)
+    def propositions(self, w: str or list):
+        if self.distance_fn is None:
+            if isinstance(w, str):
+                code = self.soundex(w)
+                return self.soundex_dict[code]
+            else:
+                return {w0: self.soundex_dict[self.soundex(w0)][:self.max_proposition] for w0 in w}
+        else:
+            return super(SoundexDistance, self).propositions(w)
 
 
+class JaroDistance(Distance):
+    def __init__(self, winkler=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.winkler = winkler
+
+    def distance(self, w1, w2):
+        return 1 - (jaro.jaro_winkler_metric(w1, w2) if self.winkler else jaro.jaro_metric(w1, w2))

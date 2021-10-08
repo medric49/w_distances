@@ -1,6 +1,5 @@
 import argparse
 import sys
-from math import *
 from sys import stdin
 
 import numpy as np
@@ -13,8 +12,7 @@ def get_score(prop, props, power):
         i_prop = props.index(prop)
     except ValueError:
         i_prop = len(props)
-    score = sqrt(1 - (i_prop / len(props)) ** power)
-
+    score = (1 - (i_prop / len(props)) ** power)**(1/power)
     return score
 
 
@@ -35,7 +33,7 @@ if __name__ == '__main__':
         line = line.split('\t')
         word = line[0]
         props = line[1:]
-        score = max((get_score(prop, props, args.power) for prop in props))
+        score = max((get_score(target, props, args.power) for target in eval_data[word]))
         scores.append(score)
     print(np.mean(scores))
 
