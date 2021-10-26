@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     all_props = distance.propositions(words)
 
-    for word, props in all_props.items():
+    for word, props in all_props:
         print(word, '\t'.join(props), sep='\t')
 
 

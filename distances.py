@@ -75,7 +75,7 @@ class Distance:
             else:
                 return self.select(w)
         elif isinstance(w, list):
-            return {w0: self.propositions(w0) for w0 in w}
+            return [(w0, self.propositions(w0)) for w0 in w]
 
 
 class NullDistance(Distance):
@@ -248,7 +248,7 @@ class SoundexDistance(Distance):
                 code = self.soundex(w)
                 return self.soundex_dict[code]
             else:
-                return {w0: self.soundex_dict[self.soundex(w0)][:self.max_proposition] for w0 in w}
+                return [(w0, self.soundex_dict[self.soundex(w0)][:self.max_proposition]) for w0 in w]
         else:
             return super(SoundexDistance, self).propositions(w)
 
